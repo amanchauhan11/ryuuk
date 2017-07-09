@@ -1,47 +1,24 @@
 # Ryuuk
 
 Ryuuk is a prospective concurrent web-server written in C++.
-
 Currently Ryuuk runs only in POSIX compliant environments only.
 
 ## Building
 
 ***nix systems**
 ```
-$ git clone https://github.com/amhndu/ryuuk
+$ git clone https://github.com/amanchauhan11/ryuuk
 $ cd ryuuk
 $ mkdir build && cd build
 $ cmake ..
 $ make -ji # where i = no. of cores you can spare
 ```
 
-*Windows*
-
-1. Nuke your Windows installation
-2. Install a Linux flavour
-3. Follow the build instructions for *nix systems
-
 ## Why
 
-* Becuase why not ?
-* The original authors wanted to know a thing or two about sockets & HTTP
+We made this webserver as part of our college project "Empowering India’s emerging Internet users with Data Compression"
+under PR101 which aims at identifying and improvising different formats suitable for compression of web data like text, html, images and videos. Through this server we wanted to learn a thing or two about http and multithreading.
 
-
-## Keikaku
-
-
-#### Short term
-
-* Basic HTTP 1.1 GET requests
-* A Functional web server
-
-
-#### Long term
-
-* Most of HTTP/1.1
-* World domination
-
-For a more detailed keikaku, please see the [TODO](TODO.md)
 
 ## References
 
