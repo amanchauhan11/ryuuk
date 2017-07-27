@@ -24,6 +24,7 @@ file(GLOB SOURCES
 
 # Copy resources
 file(COPY ryuuk.conf DESTINATION .)
+file(COPY scripts DESTINATION .)
 
 # Will add __FILENAME__ macros for all source files, which is the filename without full find_path
 # Courtesy of SO

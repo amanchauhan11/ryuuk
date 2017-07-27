@@ -8,6 +8,8 @@
 #include <ctime>
 #include <sys/types.h>
 #include <dirent.h>
+#include <unistd.h>
+#include <sys/wait.h>
 
 namespace ryuuk
 {
@@ -84,14 +86,47 @@ namespace ryuuk
 
     bool Response::sendResource(const std::string& location, bool nopayload)
     {
-        std::ifstream file(location, std::ios_base::in | std::ios_base::binary);
+        // Hook for the resource compression script
+        pid_t pid = 0;
+        int pipefd[2];
+        FILE* output;
+        char line[256];
+        int status;
+
+        pipe(pipefd); //create a pipe
+        pid = fork(); //span a child process
+        if (pid == 0)
+        {
+            // Child. Let's redirect its standard output to our pipe and replace process with the script
+            close(pipefd[0]);
+            dup2(pipefd[1], STDOUT_FILENO);
+            dup2(pipefd[1], STDERR_FILENO);
+            execl("/usr/bin/sh", "sh", "-f", "scripts/convert.sh", location.c_str(), nullptr);
+        }
+
+        // Only parent gets here. Listen to what the script says
+        close(pipefd[1]);
+        output = fdopen(pipefd[0], "r");
+
+        if (!fgets(line, sizeof(line), output))
+        {
+            LOG(DEBUG) << "Error in reading from pipe" << std::endl;
+            return false;
+        }
+
+        // wait for the child process to terminate
+        waitpid(pid, &status, 0);
+        std::string new_location = line;
+        new_location = new_location.substr(0, new_location.find('\n'));
+
+        std::ifstream file(new_location, std::ios_base::in | std::ios_base::binary);
         if (file.is_open() && file.good())
         {
             m_responseString += "Accept-Ranges: none\r\n"
                                 "Content-Type: ";
 
             //auto ext = location.substr(location.find_last_of('.'));
-            auto ext = location.substr(location.find_last_of('/'));
+            auto ext = new_location.substr(new_location.find_last_of('/'));
 
             auto pos = ext.find_last_of('.');
             if (pos != std::string::npos)
@@ -107,6 +142,8 @@ namespace ryuuk
                 m_responseString += it->second + "\r\n";
             else
                 m_responseString += "application/octet-stream";  // Default
+
+
 
             std::string payload(std::istreambuf_iterator<char>{file}, {});
             m_responseString += "Content-Length: " + std::to_string(payload.size()) +
